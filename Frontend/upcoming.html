@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Upcoming Renewals</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container wide">
+    <div class="header">
+      <h2>📅 Upcoming Renewals</h2>
+      <div class="header-actions">
+        <button class="secondary-btn" onclick="window.location.href='dashboard.html'">← Back</button>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+      </div>
+    </div>
+
+    <ul id="upcomingList"></ul>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      const token = localStorage.getItem("token");
+      const list = document.getElementById("upcomingList");
+
+      try {
+        const res = await fetch(`${SERVER_URL}/api/v1/subscriptions/upcoming-renewals`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        const data = await res.json();
+        if (res.ok && Array.isArray(data.data)) {
+          list.innerHTML = data.data.map(sub => `
+            <li>
+              <strong>${sub.name}</strong><br>
+              Price: ${sub.price} ${sub.currency}<br>
+              Status: <span class="status ${sub.status}">${sub.status}</span><br>
+              Renewal Date: ${new Date(sub.startDate).toLocaleDateString()}
+            </li>
+          `).join("");
+        } else {
+          list.innerHTML = `<li>${data.message || "No upcoming renewals"}</li>`;
+        }
+      } catch (err) {
+        console.error("Load upcoming error:", err);
+      }
+    });
+  </script>
+</body>
+</html>

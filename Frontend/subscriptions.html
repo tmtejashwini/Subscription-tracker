@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>View Subscriptions</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container wide">
+    <div class="header">
+      <h2>Your Subscriptions</h2>
+      <div class="header-actions">
+        <button class="secondary-btn" onclick="window.location.href='dashboard.html'">← Back to Dashboard</button>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+      </div>
+    </div>
+
+    <ul id="allSubscriptions"></ul>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      await loadAllSubscriptions();
+    });
+
+    async function loadAllSubscriptions() {
+      const token = localStorage.getItem("token");
+      const userId = localStorage.getItem("userId");
+      const list = document.getElementById("allSubscriptions");
+
+      try {
+        const res = await fetch(`${SERVER_URL}/api/v1/subscriptions/user/${userId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        const data = await res.json();
+        if (res.ok && Array.isArray(data.data)) {
+          list.innerHTML = data.data.map(sub => `
+          <li id="sub-${sub._id}">
+            <div id="view-${sub._id}" class="sub-view">
+              <strong>${sub.name}</strong><br>
+              Price: ${sub.price} ${sub.currency}<br>
+              Frequency: ${sub.frequency}<br>
+              Category: ${sub.category}<br>
+              Payment: ${sub.paymentMethod}<br>
+              Start Date: ${new Date(sub.startDate).toLocaleDateString()}<br>
+              Status: <span class="status ${sub.status}">${sub.status}</span><br>
+              Renewal Date: ${sub.renewalDate ? new Date(sub.renewalDate).toLocaleDateString() : "N/A"}
+
+              <div class="subscription-actions">
+                <button onclick="enableEdit('${sub._id}')">✏️ Edit</button>
+                <button onclick="deleteSubscription('${sub._id}')">🗑 Delete</button>
+                <button onclick="cancelSubscription('${sub._id}')">✖ Cancel</button>
+              </div>
+            </div>
+
+            <!-- Edit mode (hidden initially) -->
+            <div id="edit-${sub._id}" class="sub-edit" style="display: none;">
+              <input type="text" id="name-${sub._id}" value="${sub.name}" class="inline-input"><br>
+              Price: <input type="number" id="price-${sub._id}" value="${sub.price}" class="inline-input">
+              <select id="currency-${sub._id}" class="inline-input">
+                <option value="USD" ${sub.currency === "USD" ? "selected" : ""}>USD</option>
+                <option value="INR" ${sub.currency === "INR" ? "selected" : ""}>INR</option>
+                <option value="EUR" ${sub.currency === "EUR" ? "selected" : ""}>EUR</option>
+              </select><br>
+
+              Frequency:
+              <select id="frequency-${sub._id}" class="inline-input">
+                <option value="daily" ${sub.frequency === "daily" ? "selected" : ""}>Daily</option>
+                <option value="weekly" ${sub.frequency === "weekly" ? "selected" : ""}>Weekly</option>
+                <option value="monthly" ${sub.frequency === "monthly" ? "selected" : ""}>Monthly</option>
+                <option value="yearly" ${sub.frequency === "yearly" ? "selected" : ""}>Yearly</option>
+              </select><br>
+
+              Category:
+              <select id="category-${sub._id}" class="inline-input">
+                <option value="sports" ${sub.category === "sports" ? "selected" : ""}>Sports</option>
+                <option value="news" ${sub.category === "news" ? "selected" : ""}>News</option>
+                <option value="entertainment" ${sub.category === "entertainment" ? "selected" : ""}>Entertainment</option>
+                <option value="lifestyle" ${sub.category === "lifestyle" ? "selected" : ""}>Lifestyle</option>
+                <option value="technology" ${sub.category === "technology" ? "selected" : ""}>Technology</option>
+                <option value="finance" ${sub.category === "finance" ? "selected" : ""}>Finance</option>
+                <option value="politics" ${sub.category === "politics" ? "selected" : ""}>Politics</option>
+                <option value="other" ${sub.category === "other" ? "selected" : ""}>Others</option>
+              </select><br>
+
+              Payment Method:
+              <input type="text" id="payment-${sub._id}" value="${sub.paymentMethod}" class="inline-input"><br>
+
+              Start Date:
+              <input type="date" id="startDate-${sub._id}" value="${sub.startDate ? sub.startDate.split('T')[0] : ""}" class="inline-input"><br>
+
+              Status:
+              <select id="status-${sub._id}" class="inline-input" ${sub.status === "expired" ? "disabled" : ""}>
+                <option value="active" ${sub.status === "active" ? "selected" : ""}>Active</option>
+                <option value="cancelled" ${sub.status === "cancelled" ? "selected" : ""}>Cancelled</option>
+                <option value="expired" ${sub.status === "expired" ? "selected" : ""}>Expired</option>
+              </select><br>
+
+              <div class="subscription-actions">
+                <button onclick="saveSubscription('${sub._id}')">💾 Save</button>
+                <button onclick="cancelEdit('${sub._id}')">↩ Cancel</button>
+              </div>
+            </div>
+          </li>
+        `).join("");
+        } else {
+          list.innerHTML = `<li>${data.message || "No subscriptions found"}</li>`;
+        }
+      } catch (err) {
+        console.error("Load subscriptions error:", err);
+      }
+    }
+
+    async function deleteSubscription(id) {
+      const token = localStorage.getItem("token");
+      try {
+        const res = await fetch(`${SERVER_URL}/api/v1/subscriptions/${id}`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.ok) {
+          alert("✅ Subscription deleted!");
+          loadAllSubscriptions();
+        }
+      } catch (err) {
+        console.error("Delete error:", err);
+      }
+    }
+
+    async function cancelSubscription(id) {
+      const token = localStorage.getItem("token");
+      try {
+        const res = await fetch(`${SERVER_URL}/api/v1/subscriptions/${id}/cancel`, {
+          method: "PUT",
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.ok) {
+          alert("⚠️ Subscription cancelled!");
+          loadAllSubscriptions();
+        }
+      } catch (err) {
+        console.error("Cancel error:", err);
+      }
+    }
+
+    async function saveSubscription(id) {
+      const token = localStorage.getItem("token");
+
+      const updatedData = {
+        name: document.getElementById(`name-${id}`).value,
+        price: document.getElementById(`price-${id}`).value,
+        currency: document.getElementById(`currency-${id}`).value,
+        frequency: document.getElementById(`frequency-${id}`).value,
+        category: document.getElementById(`category-${id}`).value,
+        paymentMethod: document.getElementById(`payment-${id}`).value,
+        startDate: document.getElementById(`startDate-${id}`).value,
+        status: document.getElementById(`status-${id}`)?.value // won't exist if disabled
+      };
+
+      try {
+        const res = await fetch(`${SERVER_URL}/api/v1/subscriptions/${id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify(updatedData)
+        });
+
+        if (res.ok) {
+          alert("✅ Subscription updated!");
+          loadAllSubscriptions();
+        } else {
+          const data = await res.json();
+          alert(`❌ Update failed: ${data.message}`);
+        }
+      } catch (err) {
+        console.error("Update error:", err);
+      }
+    }
+
+    function enableEdit(id) {
+      document.getElementById(`view-${id}`).style.display = "none";
+      document.getElementById(`edit-${id}`).style.display = "block";
+    }
+
+    function cancelEdit(id) {
+      document.getElementById(`edit-${id}`).style.display = "none";
+      document.getElementById(`view-${id}`).style.display = "block";
+    }
+
+  </script>
+</body>
+</html>

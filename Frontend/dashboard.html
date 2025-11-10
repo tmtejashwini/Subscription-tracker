@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>User Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container wide">
+    <div class="header">
+      <h2>My Subscriptions</h2>
+      <div class="header-actions">
+        <button class="secondary-btn" onclick="window.location.href='subscriptions.html'">📂 View All</button>
+        <button class="secondary-btn" onclick="window.location.href='upcoming.html'">📅 Upcoming Renewals</button>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+      </div>
+    </div>
+    
+    <div class="header">
+      <h2>📋 Add Subscription</h2>
+    </div>
+    <form id="subscriptionForm" class="form-card">
+      <div class="form-group">
+        <label for="subName">Subscription Name:</label>
+        <input type="text" id="subName" placeholder="e.g. Netflix, Hotstar" required>
+      </div>
+
+      <div class="form-group">
+        <label for="subPrice">Price:</label>
+        <input type="number" id="subPrice" placeholder="Price" required>
+      </div>
+
+      <div class="form-group">
+        <label for="subCurrency">Currency:</label>
+        <select id="subCurrency" required>
+          <option value="USD">USD</option>
+          <option value="INR">INR</option>
+          <option value="EUR">EUR</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="subFrequency">Frequency:</label>
+        <select id="subFrequency" required>
+          <option value="daily">Daily</option>
+          <option value="weekly">Weekly</option>
+          <option value="monthly">Monthly</option>
+          <option value="yearly">Yearly</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="subCategory">Category:</label>
+        <select id="subCategory" required>
+          <option value="sports">Sports</option>
+          <option value="news">News</option>
+          <option value="entertainment">Entertainment</option>
+          <option value="lifestyle">Lifestyle</option>
+          <option value="technology">Technology</option>
+          <option value="finance">Finance</option>
+          <option value="politics">Politics</option>
+          <option value="other">Others</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="subPaymentMethod">Payment Method:</label>
+        <input type="text" id="subPaymentMethod" placeholder="e.g. Credit Card" required>
+      </div>
+
+      <div class="form-group">
+        <label for="subStartDate">Start Date:</label>
+        <input type="date" id="subStartDate" required>
+      </div>
+
+      <div class="form-group">
+        <label for="subStatus">Status:</label>
+        <select id="subStatus" required>
+          <option value="active">Active</option>
+          <option value="cancelled">Cancelled</option>
+          <option value="expired">Expired</option>
+        </select>
+      </div>
+
+      <button type="submit" class="primary-btn">➕ Add Subscription</button>
+    </form>
+  </div>
+
+  <!-- Toast Message -->
+  <div id="toast" class="toast"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
+
+
